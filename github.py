@@ -5,6 +5,16 @@ import os
 import pickle
 from getpass import getpass, getuser
 
+
+'''
+TODO:
+** fix error with parsing of retweet
+** name: twit or tweet
+** fix error with id.dat
+** save list of subscribers on repos
+'''
+
+
 LOGIN = getuser()
 PASSWORD = getpass()
 secret = twitter.SecretKeys('Y0UqIfZ7ouuOBuZ8JLZSQA',
@@ -146,7 +156,7 @@ def get_problems():
             send_to_twitter('@%s %s' % (problem['user'], 'Access denied!'))
     return problems
 
-w
+
 def send_to_twitter(text):
     global api
     api.PostUpdate(text)
@@ -154,6 +164,7 @@ def send_to_twitter(text):
 
 def main():
     gh = auth_user()
+
     while True:
         print('Get new list of problems')
         problems = get_problems()
