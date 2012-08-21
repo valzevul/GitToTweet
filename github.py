@@ -16,6 +16,7 @@ TODO:
 api = twitter.Api(secret.keys['consumer_key'], secret.keys['consumer_secret'],
     secret.keys['auth_key'], secret.keys['auth_secret'])
 list_of_repos = []
+SPECIAL_COMMANDS = [3, 4]
 
 
 def get_data(filename='id.dat'):
@@ -24,7 +25,10 @@ def get_data(filename='id.dat'):
 
 
 def check(problem):
-    return problem['user'].lower() == problem['params'][0].lower()
+    if problem['command'] not in SPECIAL_COMMANDS:
+        return True
+    else:
+        return problem['user'].lower() == problem['params'][0].lower()
 
 
 def solve(problem, gh):
@@ -108,7 +112,7 @@ def check_new_commits(gh):
                             repo['params'][1]))
 
 
-def help():
+def help(gh, params):
     return "Usage: @GitToTweet [command], [params, params, ..., params]"
 
 
