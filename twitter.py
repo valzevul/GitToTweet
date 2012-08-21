@@ -6,21 +6,23 @@ import pickle
 import os
 
 
+HOME_TIMELINE_URL = 'http://api.twitter.com/1/statuses/home_timeline.json'
+UPDATE_URL = 'http://api.twitter.com/1/statuses/update.json'
+MENTIONS_URL = 'http://api.twitter.com/1/statuses/mentions.json'
+FILENAME = 'id.dat'
+
+
 class SecretKeys:
     keys = {}
 
     def __init__(self, consumer_key, consumer_secret, auth_key, auth_secret):
-        self.keys = {'consumer_key': '%s' % consumer_key,
-                    'consumer_secret': '%s' % consumer_secret,
-                    'auth_key': '%s' % auth_key,
-                    'auth_secret': '%s' % auth_secret}
+        self.keys = {'consumer_key': consumer_key,
+                     'consumer_secret': consumer_secret,
+                     'auth_key': auth_key,
+                     'auth_secret': auth_secret}
 
 
 class Api(object):
-    HOME_TIMELINE_URL = 'http://api.twitter.com/1/statuses/home_timeline.json'
-    UPDATE_URL = 'http://api.twitter.com/1/statuses/update.json'
-    MENTIONS_URL = 'http://api.twitter.com/1/statuses/mentions.json'
-
     def to_query_string(self, params):
         return '&'.join(['%s=%s' % (urllib.parse.quote(k, ''),
                 urllib.parse.quote(str(v), '')) for k, v in params.items()])
@@ -38,11 +40,11 @@ class Api(object):
         self.GetConnection()
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer, token=self.access_token, http_method='GET',
-            http_url=self.HOME_TIMELINE_URL, parameters=params)
+            http_url=HOME_TIMELINE_URL, parameters=params)
         oauth_request.sign_request(self.signature_method, self.consumer,
             self.access_token)
         self.connection.request(oauth_request.http_method,
-            self.HOME_TIMELINE_URL + '?' + self.to_query_string(params),
+            HOME_TIMELINE_URL + '?' + self.to_query_string(params),
             headers=oauth_request.to_header())
         response = str(self.connection.getresponse().read(), encoding='utf-8')
         for status in json.loads(response):
@@ -59,10 +61,10 @@ class Api(object):
         self.GetConnection()
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer, token=self.access_token, http_method='POST',
-            http_url=self.UPDATE_URL, parameters=params)
+            http_url=UPDATE_URL, parameters=params)
         oauth_request.sign_request(self.signature_method, self.consumer,
             self.access_token)
-        self.connection.request(oauth_request.http_method, self.UPDATE_URL,
+        self.connection.request(oauth_request.http_method, UPDATE_URL,
             headers=oauth_request.to_header(),
             body=self.to_query_string(params))
         response = str(self.connection.getresponse().read(), encoding='utf-8')
@@ -70,7 +72,7 @@ class Api(object):
 
     def _save(self, data):
         path = os.path.dirname(__file__)
-        filename = 'id.dat'
+        filename = FILENAME
         path = os.path.join(path, filename)
         log_file = open(path, 'wb')
         pickle.dump(data, log_file)
@@ -82,11 +84,11 @@ class Api(object):
         oauth_request =\
             oauth.OAuthRequest.from_consumer_and_token(self.consumer,
                             token=self.access_token, http_method='GET',
-                            http_url=self.MENTIONS_URL, parameters=params)
+                            http_url=MENTIONS_URL, parameters=params)
         oauth_request.sign_request(self.signature_method,
                                         self.consumer, self.access_token)
         self.connection.request(oauth_request.http_method,
-                    self.MENTIONS_URL + '?' + self.to_query_string(params),
+                    MENTIONS_URL + '?' + self.to_query_string(params),
                     headers=oauth_request.to_header())
         response = str(self.connection.getresponse().read(), encoding='utf-8')
         list_of_problems = []

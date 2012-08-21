@@ -4,23 +4,15 @@ import time
 import os
 import pickle
 from getpass import getpass, getuser
+from config import secret, LOGIN, PASSWORD
 
 
 '''
 TODO:
-** fix error with parsing of retweet
-** name: twit or tweet
-** fix error with id.dat
 ** save list of subscribers on repos
 '''
 
 
-LOGIN = getuser()
-PASSWORD = getpass()
-secret = twitter.SecretKeys('Y0UqIfZ7ouuOBuZ8JLZSQA',
-            'cpFRdoqbk1ohx0cu2uDzY08VYyQu2qE3NG6rUzjsobs',
-            '769299026-Ljj0AZDNKakCKQT6EvpnQHS3cBxwp4HuamVbJ6oo',
-            'Bc4SuNNkVuWrwJzczyFNhzDRFBjGitoeCvFY0eppo')
 api = twitter.Api(secret.keys['consumer_key'], secret.keys['consumer_secret'],
     secret.keys['auth_key'], secret.keys['auth_secret'])
 list_of_repos = []
@@ -149,6 +141,8 @@ def get_problems():
     for problem in list_of_problems:
         problem = form_problem(problem)
         if problem == None:
+            pass
+        elif problem['command'] == None:
             send_to_twitter('@%s %s' % (problem['user'], 'Command not found'))
         elif check(problem):
             problems.append(problem)
