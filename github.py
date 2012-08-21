@@ -10,6 +10,7 @@ from config import secret, LOGIN, PASSWORD
 '''
 TODO:
 ** save list of subscribers on repos
+** logging instead of print
 '''
 
 
@@ -173,7 +174,10 @@ def main():
         print('Get new list of problems')
         problems = get_problems()
         for problem in problems:
-            result = solve(problem, gh)
+            try:
+                result = solve(problem, gh)
+            except:
+                result = 'Repository not found'
             print('Send results to twitter')
             send_to_twitter('@%s %s.' % (problem['user'], result))
         check_new_commits(gh)
