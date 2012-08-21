@@ -36,8 +36,8 @@ def solve(problem, gh):
     functions = {0: get_last_commit,
                  1: get_list_of_participants,
                  2: get_count_of_open_issues,
-                 3: add_new_user_to_repository,
-                 4: make_new_issue,
+                 3: get_count_of_commits,
+                 4: get_count_of_repos,
                  5: notice_about_commits,
                  6: help}
     return functions[problem['command']](gh, problem['params'])
@@ -53,6 +53,33 @@ def get_last_commit(gh, params):
                     last_commit.commit.author.name)
 
 
+def get_count_of_commits(gh, params):
+    pattern = 'There %s %s commit%s in "%s"'
+    print(params)
+    owner = params[0]
+    repository = params[1].split('/')[1]
+    count = len(gh.repository(owner, repository).list_commits())
+    if count == 0:
+        return pattern % ('is', 'NO', 's', repository)
+    elif count == 1:
+        return pattern % ('is', 'ONE', '', repository)
+    else:
+        return pattern % ('are', str(count), 's', repository)
+
+
+def get_count_of_repos(gh, params):
+    pattern = 'There %s %s repo%s by "%s"'
+    print(params)
+    owner = gh.user(params[0])
+    count = owner.public_repos
+    if count == 0:
+        return pattern % ('is', 'NO', 's', owner)
+    elif count == 1:
+        return pattern % ('is', 'ONE', '', owner)
+    else:
+        return pattern % ('are', str(count), 's', owner)
+
+
 def get_list_of_participants(gh, params):
     pattern = 'List of contributors of %s: %s'
     owner = params[0]
@@ -64,28 +91,18 @@ def get_list_of_participants(gh, params):
 
 
 def get_count_of_open_issues(gh, params):
-    pattern = 'There are %d open issues in %s. The latest is "%s".'
+    pattern = 'There %s %s open issues in %s.%s'
+    latest = ' The latest is "%s".'
     owner = params[0]
     repository = params[1].split('/')[1]
     list_of_issues = gh.list_repo_issues(owner, repository)
-    if len(list_of_issues) > 0:
-        return pattern % (len(list_of_issues),
-                        params[1], str(list_of_issues[0].title))
+    count = len(list_of_issues)
+    if count == 0:
+        return pattern % ('is', 'NO', params[1], '')
+    elif count == 1:
+        return patter % ('is', 'ONE', params[1], latest % list_of_issues[0].title)
     else:
-        return 'There are no open issues in %s' % params[1]
-
-
-def make_new_issue(gh, params):
-    repository = params['repository']
-    owner = params['owner']
-    title = params['title']
-    return gh.create_issue(repository, owner, title)
-
-
-def add_new_user_to_repository(gh, params):
-    repo = params['repository']
-    login = params['owner']
-    return gh.watch(login, repo)
+        return patter % ('are', str(count), params[1], latest % list_of_issues[0].title)
 
 
 def notice_about_commits(gh, params):
@@ -100,7 +117,7 @@ def notice_about_commits(gh, params):
         params = repo
         new_repo = {'commit': commit, 'users': users, 'params': params}
         list_of_repos.append(new_repo)
-    return 'OK, you have subscribed on %s' % repo
+    return 'OK, you was subscribed on %s' % repo
 
 
 def check_new_commits(gh):
@@ -126,8 +143,8 @@ def form_problem(problem):
     commands = ['get last commit',
                 'get list of participants',
                 'get count of open issues',
-                'add new user to repository',
-                'make new issue',
+                'get count of commits',
+                'get count of repos',
                 'notice me about commits',
                 'help']
     text = problem['text'].lower()
@@ -169,7 +186,6 @@ def send_to_twitter(text):
 
 def main():
     gh = auth_user()
-
     while True:
         print('Get new list of problems')
         problems = get_problems()
@@ -178,7 +194,6 @@ def main():
                 result = solve(problem, gh)
             except:
                 result = 'Repository not found'
-            print('Send results to twitter')
             send_to_twitter('@%s %s.' % (problem['user'], result))
         check_new_commits(gh)
         time.sleep(10)
