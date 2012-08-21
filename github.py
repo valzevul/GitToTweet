@@ -33,7 +33,8 @@ def solve(problem, gh):
                  2: get_count_of_open_issues,
                  3: add_new_user_to_repository,
                  4: make_new_issue,
-                 5: notice_about_commits}
+                 5: notice_about_commits,
+                 6: help}
     return functions[problem['command']](gh, problem['params'])
 
 
@@ -107,6 +108,10 @@ def check_new_commits(gh):
                             repo['params'][1]))
 
 
+def help():
+    return "Usage: @GitToTweet [command], [params, params, ..., params]"
+
+
 def auth_user():
     gh = login(LOGIN, PASSWORD)
     return gh
@@ -118,7 +123,8 @@ def form_problem(problem):
                 'get count of open issues',
                 'add new user to repository',
                 'make new issue',
-                'notice me about commits']
+                'notice me about commits',
+                'help']
     text = problem['text'].lower()
     text = text.split(', ')
     print(text)
@@ -153,7 +159,7 @@ def get_problems():
 
 def send_to_twitter(text):
     global api
-    api.PostUpdate(text)
+    api.post_update(text)
 
 
 def main():

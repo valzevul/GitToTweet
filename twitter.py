@@ -32,12 +32,12 @@ class Api(object):
         self.consumer = oauth.OAuthConsumer(consumer_key, consumer_secret)
         self.access_token = oauth.OAuthToken(user_key, user_secret)
 
-    def GetConnection(self):
+    def get_connection(self):
         self.connection = http.client.HTTPConnection('twitter.com')
 
-    def GetFriendsTimeline(self):
+    def get_friends_timeline(self):
         params = {'count': 3}
-        self.GetConnection()
+        self.get_connection()
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer, token=self.access_token, http_method='GET',
             http_url=HOME_TIMELINE_URL, parameters=params)
@@ -54,11 +54,11 @@ class Api(object):
             print()
         return self
 
-    def PostUpdate(self, text):
+    def post_update(self, text):
         status = text
 
         params = {'status': status}
-        self.GetConnection()
+        self.get_connection()
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer, token=self.access_token, http_method='POST',
             http_url=UPDATE_URL, parameters=params)
@@ -80,7 +80,7 @@ class Api(object):
 
     def get_new_mentions(self, idx):
         params = {'since_id': idx}
-        self.GetConnection()
+        self.get_connection()
         oauth_request =\
             oauth.OAuthRequest.from_consumer_and_token(self.consumer,
                             token=self.access_token, http_method='GET',
