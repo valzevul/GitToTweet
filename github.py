@@ -12,7 +12,6 @@ FILENAME = 'repos.dat'
 
 '''
 TODO:
-** save list of subscribers on repos
 ** logging instead of print
 '''
 
@@ -52,7 +51,8 @@ def solve(problem, gh):
                  3: get_count_of_commits,
                  4: get_count_of_repos,
                  5: subscribe_on_commits,
-                 6: help}
+                 6: help,
+                 7: unsubscribe_on_commits}
     return functions[problem['command']](gh, problem['params'], problem['user'])
 
 
@@ -122,6 +122,22 @@ def subscribe_on_commits(gh, params, user):
     return 'You was successful subscribed on this repository'
 
 
+def unsubscribe_on_commits(gh, params, user):
+    global dict_of_repos
+    name = params[0] + '/' + params[1]
+    if not (name in dict_of_repos.keys()):
+        return 'You wasn\'t subscribed on this repo'
+    else:
+        if not (user in dict_of_repos[name]['users']):
+            return 'You wasn\'t subscribed on this repo'
+        else:
+            while dict_of_repos[name]['users'].index(user):
+                num = dict_of_repos[name]['users'].index(user)
+                del dict_of_repos[name]['users'][num]
+            return 'You was successful unsubscribed'
+            save(dict_of_repos)
+
+
 def check_new_commits(gh):
     global dict_of_repos
     pattern = '@%s %s'
@@ -150,7 +166,8 @@ def form_problem(problem):
                 'get count of commits',
                 'get count of repos',
                 'subscribe me',
-                'help']
+                'help',
+                'unsubscribe me']
     text = problem['text'].lower()
     text = text.split(', ')
     print(text)
