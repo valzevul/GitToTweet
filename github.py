@@ -13,12 +13,12 @@ FILENAME = 'repos.dat'
 '''
 TODO:
 ** logging instead of print
+** regexp for matching commands
 '''
 
 
 api = twitter.Api(secret.keys['consumer_key'], secret.keys['consumer_secret'],
     secret.keys['auth_key'], secret.keys['auth_secret'])
-# dict_of_repos = {'user/name': {'users': ['Vasya', 'Petya'], 'commit': 'Lol'}}
 dict_of_repos = {}
 SPECIAL_COMMANDS = []
 
@@ -46,7 +46,7 @@ def check(problem):
 
 def solve(problem, gh):
     functions = {0: get_last_commit,
-                 1: get_list_of_participants,
+                 1: get_list_of_contributors,
                  2: get_count_of_open_issues,
                  3: get_count_of_commits,
                  4: get_count_of_repos,
@@ -88,12 +88,12 @@ def get_count_of_repos(gh, params, user):
         return pattern % ('are', str(count), 's', owner.login)
 
 
-def get_list_of_participants(gh, params, user):
+def get_list_of_contributors(gh, params, user):
     pattern = 'List of contributors of %s: %s'
-    list_of_participants = []
+    list_of_contributors = []
     for user in gh.repository(params[0], params[1]).list_contributors():
-        list_of_participants.append(user.login)
-    return pattern % (params[1], str(list_of_participants))
+        list_of_contributors.append(user.login)
+    return pattern % (params[1], str(list_of_contributors))
 
 
 def get_count_of_open_issues(gh, params, user):
@@ -161,7 +161,7 @@ def auth_user():
 
 def form_problem(problem):
     commands = ['get last commit',
-                'get list of participants',
+                'get list of contributors',
                 'get count of open issues',
                 'get count of commits',
                 'get count of repos',
