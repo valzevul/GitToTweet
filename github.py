@@ -7,6 +7,9 @@ from getpass import getpass, getuser
 from config import secret, LOGIN, PASSWORD
 
 
+FILENAME = 'repos.dat'
+
+
 '''
 TODO:
 ** save list of subscribers on repos
@@ -24,6 +27,15 @@ SPECIAL_COMMANDS = []
 def get_data(filename='id.dat'):
     with open(filename, 'rb') as file:
         return pickle.load(file)
+
+
+def save(data):
+    path = os.path.dirname(__file__)
+    filename = FILENAME
+    path = os.path.join(path, filename)
+    log_file = open(path, 'wb')
+    pickle.dump(data, log_file)
+    log_file.close()
 
 
 def check(problem):
@@ -106,6 +118,7 @@ def subscribe_on_commits(gh, params, user):
         dict_of_repos[name]['commit'] = ''
     else:
         dict_of_repos[name]['users'].append(user)
+    save(dict_of_repos)
     return 'You was successful subscribed on this repository'
 
 
@@ -176,7 +189,12 @@ def send_to_twitter(text):
 
 
 def main():
+    global dict_of_repos
     gh = auth_user()
+    try:
+        dict_of_repos = get_data('repos.dat')
+    except:
+        save(dict_of_repos)
     while True:
         print('Get new list of problems')
         problems = get_problems()
