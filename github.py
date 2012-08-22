@@ -16,7 +16,8 @@ TODO:
 
 api = twitter.Api(secret.keys['consumer_key'], secret.keys['consumer_secret'],
     secret.keys['auth_key'], secret.keys['auth_secret'])
-list_of_repos = []
+# dict_of_repos = {'user/name': {'users': ['Vasya', 'Petya'], 'commit': 'Lol'}}
+dict_of_repos = {}
 SPECIAL_COMMANDS = []
 
 
@@ -38,12 +39,12 @@ def solve(problem, gh):
                  2: get_count_of_open_issues,
                  3: get_count_of_commits,
                  4: get_count_of_repos,
-                 5: notice_about_commits,
+                 5: subscribe_on_commits,
                  6: help}
-    return functions[problem['command']](gh, problem['params'])
+    return functions[problem['command']](gh, problem['params'], problem['user'])
 
 
-def get_last_commit(gh, params):
+def get_last_commit(gh, params, user):
     pattern = 'Latest commit in "%s" is "%s" by %s'
     repository = gh.repository(params[0], params[1])
     last_commit = repository.list_commits()[0]
@@ -51,7 +52,7 @@ def get_last_commit(gh, params):
                     last_commit.commit.author.name)
 
 
-def get_count_of_commits(gh, params):
+def get_count_of_commits(gh, params, user):
     pattern = 'There %s %s commit%s in "%s"'
     repository = gh.repository(params[0], params[1])
     count = len(repository.list_commits())
@@ -63,19 +64,19 @@ def get_count_of_commits(gh, params):
         return pattern % ('are', str(count), 's', repository.name)
 
 
-def get_count_of_repos(gh, params):
-    pattern = 'There %s %s repo%s by "%s"'
+def get_count_of_repos(gh, params, user):
+    pattern = 'There %s %s repo%s by %s'
     owner = gh.user(params[0])
     count = owner.public_repos
     if count == 0:
-        return pattern % ('is', 'NO', 's', owner)
+        return pattern % ('is', 'NO', 's', owner.login)
     elif count == 1:
-        return pattern % ('is', 'ONE', '', owner)
+        return pattern % ('is', 'ONE', '', owner.login)
     else:
-        return pattern % ('are', str(count), 's', owner)
+        return pattern % ('are', str(count), 's', owner.login)
 
 
-def get_list_of_participants(gh, params):
+def get_list_of_participants(gh, params, user):
     pattern = 'List of contributors of %s: %s'
     list_of_participants = []
     for user in gh.repository(params[0], params[1]).list_contributors():
@@ -83,9 +84,9 @@ def get_list_of_participants(gh, params):
     return pattern % (params[1], str(list_of_participants))
 
 
-def get_count_of_open_issues(gh, params):
-    pattern = 'There %s %s open issues in %s.%s'
-    latest = ' The latest is "%s".'
+def get_count_of_open_issues(gh, params, user):
+    pattern = 'There %s %s open issues in %s%s'
+    latest = '. The latest is "%s".'
     list_of_issues = gh.list_repo_issues(params[0], params[1])
     count = len(list_of_issues)
     if count == 0:
@@ -96,27 +97,25 @@ def get_count_of_open_issues(gh, params):
         return patter % ('are', str(count), params[1], latest % list_of_issues[0].title)
 
 
-def notice_about_commits(gh, params):
-    global list_of_repos
-    if repo in list_of_repos:
-        list_of_repos[list_of_repos.index(params[1])]['users'].append(params[0])
-    else:
-        commit = ''
-        users = [params[0]]
-        params = params[1]
-        new_repo = {'commit': commit, 'users': users, 'params': params}
-        list_of_repos.append(new_repo)
-    return 'OK, you was subscribed on %s' % params[1]
+def subscribe_on_commits(gh, params, user):
+    global dict_of_repos
+    try:
+        dict_of_repos[params[0] + '/' + params[1]]['users'].append(user)
+    except:
+        dict_of_repos[params[0] + '/' + params[1]] = {}
+        dict_of_repos[params[0] + '/' + params[1]]['users'] = [user]
+        dict_of_repos[params[0] + '/' + params[1]]['commit'] = ''
+    return 'You was successful subscribed on this repository'
 
 
 def check_new_commits(gh):
+    global dict_of_repos
     pattern = '%s In repository %s found new commit(-s).'
-    for repo in list_of_repos:
-        commit = get_last_commit(gh, repo['params'])
-        if commit != repo['commit']:
-            repo['commit'] = commit
-            send_to_twitter(pattern % ('@'.join(repo['users']),
-                            repo['params'][1]))
+    for repo, users in dict_of_repos.items():
+        commit = get_last_commit(gh, repo.split('/'), '')
+        if commit is None or commit != dict_of_repos[repo]['commit']:
+            dict_of_repos[repo]['commit'] = commit
+            send_to_twitter(pattern % ('@'.join(users), repo))
 
 
 def help(gh, params):
@@ -134,7 +133,7 @@ def form_problem(problem):
                 'get count of open issues',
                 'get count of commits',
                 'get count of repos',
-                'notice me about commits',
+                'subscribe me',
                 'help']
     text = problem['text'].lower()
     text = text.split(', ')
