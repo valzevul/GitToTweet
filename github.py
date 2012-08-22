@@ -99,12 +99,13 @@ def get_count_of_open_issues(gh, params, user):
 
 def subscribe_on_commits(gh, params, user):
     global dict_of_repos
+    name = params[0] + '/' + params[1]
     try:
-        dict_of_repos[params[0] + '/' + params[1]]['users'].append(user)
+        dict_of_repos[name]['users'].append(user)
     except:
-        dict_of_repos[params[0] + '/' + params[1]] = {}
-        dict_of_repos[params[0] + '/' + params[1]]['users'] = [user]
-        dict_of_repos[params[0] + '/' + params[1]]['commit'] = ''
+        dict_of_repos[name] = {}
+        dict_of_repos[name]['users'] = [user]
+        dict_of_repos[name]['commit'] = ''
     return 'You was successful subscribed on this repository'
 
 
@@ -113,9 +114,10 @@ def check_new_commits(gh):
     pattern = '%s In repository %s found new commit(-s).'
     for repo, users in dict_of_repos.items():
         commit = get_last_commit(gh, repo.split('/'), '')
-        if commit is None or commit != dict_of_repos[repo]['commit']:
+        if commit != dict_of_repos[repo]['commit']:
             dict_of_repos[repo]['commit'] = commit
-            send_to_twitter(pattern % ('@'.join(users), repo))
+            for user in users:
+                send_to_twitter(pattern % ('@%s' % user, repo))
 
 
 def help(gh, params):
