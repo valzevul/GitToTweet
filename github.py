@@ -111,13 +111,13 @@ def subscribe_on_commits(gh, params, user):
 
 def check_new_commits(gh):
     global dict_of_repos
-    pattern = '%s In repository %s found new commit(-s).'
+    pattern = '@%s %s'
     for repo, users in dict_of_repos.items():
         commit = get_last_commit(gh, repo.split('/'), '')
-        print(repo, users)
-        if commit != dict_of_repos[repo]['commit']:
-            for user in users:
-                send_to_twitter(pattern % ('@%s' % user, repo))
+        if commit != users['commit']:
+            for user in users['users']:
+                print('NEW commit!')
+                send_to_twitter(pattern % (user, commit))
             dict_of_repos[repo]['commit'] = commit
 
 
