@@ -9,7 +9,7 @@ import os
 HOME_TIMELINE_URL = 'http://api.twitter.com/1/statuses/home_timeline.json'
 UPDATE_URL = 'http://api.twitter.com/1/statuses/update.json'
 MENTIONS_URL = 'http://api.twitter.com/1/statuses/mentions.json'
-FILENAME = 'id.dat'
+FILENAME = 'id.dat'  # File with the number of the last solved problem
 
 
 class SecretKeys:
@@ -23,27 +23,29 @@ class SecretKeys:
 
 
 class Api(object):
-    def _to_query_string(self, params):
-        return '&'.join(['%s=%s' % (urllib.parse.quote(k, ''),
-                urllib.parse.quote(str(v), '')) for k, v in params.items()])
-
     def __init__(self, consumer_key, consumer_secret, user_key, user_secret):
         self.signature_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
         self.consumer = oauth.OAuthConsumer(consumer_key, consumer_secret)
         self.access_token = oauth.OAuthToken(user_key, user_secret)
+
+    def _to_query_string(self, params):
+        return '&'.join(['%s=%s' % (urllib.parse.quote(k, ''),
+                urllib.parse.quote(str(v), '')) for k, v in params.items()])
 
     def _get_connection(self):
         self.connection = http.client.HTTPConnection('twitter.com')
 
     def _save(self, data):
         path = os.path.dirname(__file__)
-        filename = FILENAME
-        path = os.path.join(path, filename)
+        path = os.path.join(path, FILENAME)
         log_file = open(path, 'wb')
         pickle.dump(data, log_file)
         log_file.close()
 
     def post_update(self, text):
+        '''
+        Send new message to Twitter.
+        '''
         status = text
         params = {'status': status}
         self._get_connection()
@@ -59,6 +61,9 @@ class Api(object):
         return self
 
     def get_new_mentions(self, idx):
+        '''
+        Get list with new mentions.
+        '''
         params = {'since_id': idx}
         self._get_connection()
         oauth_request =\
