@@ -46,7 +46,10 @@ class Api(object):
         '''
         Send new message to Twitter.
         '''
-        status = text
+        if len(text) > 140:
+            status = text[:139] + '…'
+        else:
+            status = text
         params = {'status': status}
         self._get_connection()
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
@@ -79,7 +82,7 @@ class Api(object):
         list_of_problems = []
         for status in json.loads(response):
             list_of_problems.append(status)
-            print(status['text'])
-            idx = status['id']
+            print(status['text'])  # Text of the new command
+            idx = status['id']  # Number of the last mention
         self._save(idx)
         return list_of_problems
