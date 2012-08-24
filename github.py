@@ -63,7 +63,7 @@ def solve(problem, gh):
                  4: get_count_of_repos,
                  5: subscribe_on_commits,
                  6: help,
-                 7: unsubscribe_on_commits}
+                 7: unsubscribe_from_commits}
     return functions[problem['command']](gh, problem['params'],
                                          problem['user'])
 
@@ -72,7 +72,7 @@ def get_last_commit(gh, params, user):
     '''
     Return str with the message of the last commit and author's name.
     '''
-    pattern = 'Last commit in "%s" was "%s" by %s'
+    pattern = 'The last commit in "%s" was "%s" by %s'
     repository = gh.repository(params[0], params[1])
     last_commit = repository.list_commits()[0]
     return pattern % (repository.name, last_commit.commit.message,
@@ -113,9 +113,10 @@ def get_list_of_contributors(gh, params, user):
     '''
     Return str with list of repository's contributors.
     '''
-    pattern = 'List of contributors of %s: %s'
+    pattern = 'List of contributors of %s: %s...'
     list_of_contributors = []
-    for user in gh.repository(params[0], params[1]).list_contributors():
+    repo = gh.repository(params[0], params[1])
+    for user in repo.list_contributors(True):
         list_of_contributors.append(user.login)
     return pattern % (params[1], str(list_of_contributors))
 
@@ -125,16 +126,19 @@ def get_count_of_open_issues(gh, params, user):
     Return str with of open issues in repository.
     '''
     pattern = 'There %s %s open issues in %s%s'
-    latest = '. The latest is "%s".'
-    list_of_issues = gh.list_repo_issues(params[0], params[1])
+    latest = '. The last is "%s".'
+    try:
+        list_of_issues = gh.list_repo_issues(params[0], params[1])
+    except:
+        list_of_issues = []
     count = len(list_of_issues)
     if count == 0:
         return pattern % ('is', 'NO', params[1], '')
     elif count == 1:
-        return patter % ('is', 'ONE', params[1],
+        return pattern % ('is', 'ONE', params[1],
                          latest % list_of_issues[0].title)
     else:
-        return patter % ('are', str(count), params[1],
+        return pattern % ('are', str(count), params[1],
                          latest % list_of_issues[0].title)
 
 
@@ -154,7 +158,7 @@ def subscribe_on_commits(gh, params, user):
     return 'You was successful subscribed on this repository'
 
 
-def unsubscribe_on_commits(gh, params, user):
+def unsubscribe_from_commits(gh, params, user):
     '''
     Unsubscribe user from new commits in repository.
     '''
