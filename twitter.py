@@ -46,10 +46,12 @@ class Api(object):
         '''
         Send new message to Twitter.
         '''
-        if len(text) > 140:
-            status = text[:139] + '…'
+        if len(text) > 138:
+            status = text[:130] + '…'
         else:
             status = text
+        print(status)
+        print(len(status))
         params = {'status': status}
         self._get_connection()
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
