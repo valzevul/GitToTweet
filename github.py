@@ -3,7 +3,7 @@ import twitter
 import time
 import os
 import pickle
-from config import secret, LOGIN, PASSWORD
+from config import secret
 
 
 '''
@@ -16,12 +16,38 @@ TODO:
 SPECIAL_COMMANDS = []  # List with commands for admins of GitToTweet
 LIST_OF_ADMINS = ['valzevul']  # List with admins of GitToTweet
 FILENAME = 'repos.dat'  # File with subscribers on repositories
+CREDENTIALS_FILE = 'token.dat'
 dict_of_repos = {}  # Dict with repositories and subscribers
 api = twitter.Api(secret.keys['consumer_key'],
                   secret.keys['consumer_secret'],
                   secret.keys['auth_key'],
                   secret.keys['auth_secret'])
 
+def get_token():
+    from github3 import authorize
+    from getpass import getuser, getpass
+    user = getuser()
+    password = ''
+    while not password:
+        password = getpass('Password for {0}: '.format(user))
+    note = 'GitToTweet'
+    note_url = 'http://valzevul.ru/'
+    scopes = ['user', 'repo']
+    auth = authorize(user, password, scopes, note, note_url)
+    with open(CREDENTIALS_FILE, 'w') as fd:
+        fd.write(auth.token + '\n')
+        fd.write(str(auth.id))
+
+
+def use_token():
+    token = id = ''
+    with open(CREDENTIALS_FILE, 'r') as fd:
+        token = fd.readline().strip()
+        id = fd.readline().strip()
+    gh = login(token=token)
+    auth = gh.authorization(id)
+    auth.update(add_scopes=['repo:status', 'gist'], rm_scopes=['user'])
+    return gh
 
 def get_data(filename):
     '''
@@ -253,7 +279,8 @@ def send_to_twitter(text):
 
 def main():
     global dict_of_repos
-    gh = login(LOGIN, PASSWORD)
+    get_token()
+    gh = use_token()
     try:
         dict_of_repos = get_data('repos.dat')
     except:

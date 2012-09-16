@@ -3,5 +3,3 @@ secret = twitter.SecretKeys('consumer_key',
             'consumer_secret',
             'auth_key',
             'auth_secret')
-LOGIN = 'github_login'
-PASSWORD = 'github_password'
